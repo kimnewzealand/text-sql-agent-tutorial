@@ -1,3 +1,4 @@
+
 from sqlalchemy import (
     create_engine,
     insert,
@@ -10,8 +11,11 @@ from sqlalchemy import (
     text,
 )
 
+# Export engine, metadata_obj, and receipts for use in other modules
+__all__ = ["engine", "metadata_obj", "receipts"]
+
 try:
-    engine = create_engine("sqlite:///:memory:")
+    engine = create_engine("sqlite:///receipts.db")
     print("Engine created")
 except ImportError:
     print("Error importing SQLAlchemy")
@@ -36,17 +40,23 @@ rows = [
     {"receipt_id": 4, "customer_name": "Margaret James", "price": 21.11, "tip": 1.00},
 ]
 
+# Check if data already exists before inserting
 try:
-    for row in rows:
-        stmt = insert(receipts).values(**row)
-        with engine.begin() as connection:
-            cursor = connection.execute(stmt)
-    print(f"{len(rows)} rows inserted")
-except Exception as e:
-    print(f"Error inserting rows: {e}")
+    with engine.connect() as connection:
+        result = connection.execute(text("SELECT COUNT(*) FROM receipts"))
+        count = result.scalar()
 
-with engine.connect() as con:
-    rows = con.execute(text("""SELECT * from receipts"""))
-    print(f"Connected to database with {len(rows.all())} rows")
-    for row in rows:
-        print(f"The row is {row}")
+        if count == 0:
+            # Only insert data if table is empty
+            for row in rows:
+                stmt = insert(receipts).values(**row)
+                with engine.begin() as conn:
+                    conn.execute(stmt)
+            print(f"{len(rows)} rows inserted")
+        else:
+            print(f"Table already contains {count} rows, skipping data insertion")
+except Exception as e:
+    print(f"Error checking/inserting rows: {e}")
+
+    
+

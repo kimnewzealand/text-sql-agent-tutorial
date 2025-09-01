@@ -1,3 +1,6 @@
+# Databases
+receipts.db
+
 # Virtual environments
 .venv/
 venv/

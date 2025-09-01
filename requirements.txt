@@ -1,2 +1,2 @@
-smolagents==1.13.0
+smolagents==2.21.3
 sqlalchemy==2.0.43
