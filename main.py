@@ -10,13 +10,21 @@ HF_API_KEY = os.getenv("HF_API_KEY")
 @tool
 def sql_engine(query: str) -> str:
     """
-    Allows you to perform SQL queries on the table. Returns a string representation of the result.
-    The table is named 'receipts'. Its description is as follows:
+    Allows you to perform SQL queries on the database. Returns results as a simple string format.
+
+    Available tables:
+
+    1. 'receipts' table:
         Columns:
-        - receipt_id: INTEGER
-        - customer_name: VARCHAR(16)
+        - receipt_id: INTEGER (primary key)
+        - customer_name: VARCHAR(16) (primary key)
         - price: FLOAT
         - tip: FLOAT
+
+    2. 'waiters' table:
+        Columns:
+        - receipt_id: INTEGER (primary key, foreign key to receipts.receipt_id)
+        - waiter_name: VARCHAR(16) (primary key)
 
     Args:
         query: The query to perform. This should be correct SQL.
@@ -25,8 +33,8 @@ def sql_engine(query: str) -> str:
     with engine.connect() as con:
         rows = con.execute(text(query))
         for row in rows:
-            output += "\n" + str(row)
-    return output
+            output += str(tuple(row)) + "\n"
+    return output.strip()
 
 
 agent = CodeAgent(
@@ -34,4 +42,4 @@ agent = CodeAgent(
     model=InferenceClientModel("meta-llama/Meta-Llama-3-8B-Instruct", token=HF_API_KEY),
 )
 
-agent.run("Who got the highest tip percentage?")
+agent.run("Which waiter got the highest tip percentage?")
